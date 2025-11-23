@@ -13,4 +13,4 @@ rand_pcg = { version = "0.3" }
 rand_xorshift = { version = "0.3" }
 
 [workspace]
-members = ["flappy_dragon_base", "my_library"]
+members = ["flappy_dragon_base", "my_library", "pig"]
