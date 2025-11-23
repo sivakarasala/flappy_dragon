@@ -1,23 +1,23 @@
 #![warn(missing_docs)]
 //! `my_library` provides a suite of helpers to create games with Bevy.<callout id="docs.header" />
-//! 
+//!
 //! ## What's Included?<callout id="docs.heading" />
-//! 
+//!
 //! `my_library` includes:<callout id="docs.keyword" />
-//! 
+//!
 //! * Random number generation facilities.<callout id="docs.bullet" />
-//! 
+//!
 //! ## Feature Flags
-//! 
+//!
 //! The following feature flags are supported: `xorshift`, `pcg`, `locking`.
-//! 
+//!
 //! ### Random Number Generation
-//! 
-//! * The `locking` feature enables interior mutability inside 
+//!
+//! * The `locking` feature enables interior mutability inside
 //! [`RandomNumberGenerator`], <callout id="docs.code_link" />
-//!   allowing it to be used as a resource (`Res<RandomNumberGenerator`) 
+//!   allowing it to be used as a resource (`Res<RandomNumberGenerator`)
 //! rather than requiring mutability (`ResMut<RandomNumberGenerator>`)
-//! * You can control which random number generation algorithm is used by 
+//! * You can control which random number generation algorithm is used by
 //! specifying *one* of:
 //!    * `xorshift` to use the XorShift algorithm.
 //!    * `pcg` to use the PCG algorithm.
