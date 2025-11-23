@@ -4,6 +4,7 @@ use bevy::prelude::*;
 #[derive(Clone)]
 pub enum AssetType {
     Image,
+    Sound,
 }
 
 #[derive(Resource, Clone)]
@@ -31,6 +32,21 @@ impl AssetManager {
 
     pub fn add_image<S: ToString>(mut self, tag: S, filename: S) -> anyhow::Result<Self> {
         let filename = filename.to_string();
+        AssetManager::asset_exists(&filename)?;
+        self.asset_list
+            .push((tag.to_string(), filename, AssetType::Image));
+        Ok(self)
+    }
+
+    pub fn add_sound<S: ToString>(mut self, tag: S, filename: S) -> anyhow::Result<Self> {
+        let filename = filename.to_string();
+        AssetManager::asset_exists(&filename)?;
+        self.asset_list
+            .push((tag.to_string(), filename, AssetType::Sound));
+        Ok(self)
+    }
+
+    fn asset_exists(filename: &str) -> anyhow::Result<()> {
         #[cfg(not(target_arch = "wasm32"))]
         {
             let current_directory = std::env::current_dir()?;
@@ -43,9 +59,7 @@ impl AssetManager {
                 )));
             }
         }
-        self.asset_list
-            .push((tag.to_string(), filename, AssetType::Image));
-        Ok(self)
+        Ok(())
     }
 }
 
