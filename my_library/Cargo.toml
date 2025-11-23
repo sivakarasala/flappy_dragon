@@ -8,6 +8,7 @@ rand = {  workspace = true }
 rand_pcg = { workspace = true, optional = true }
 rand_xorshift = { workspace = true, optional = true }
 bevy = {  workspace = true }
+anyhow = { workspace = true }
 
 [features]
 default = [ "pcg" ]
