@@ -1,5 +1,4 @@
 #![warn(missing_docs)]
-//START: head_doc
 //! `my_library` provides a suite of helpers to create games with Bevy.<callout id="docs.header" />
 //! 
 //! ## What's Included?<callout id="docs.heading" />
@@ -22,7 +21,6 @@
 //! specifying *one* of:
 //!    * `xorshift` to use the XorShift algorithm.
 //!    * `pcg` to use the PCG algorithm.
-//END: head_doc
 
 #[cfg(not(feature = "locking"))]
 mod random;
@@ -34,8 +32,9 @@ mod random_locking;
 #[cfg(feature = "locking")]
 pub use random_locking::*;
 
-//START: rand
 /// [`RandomNumberGenerator`] wraps the `rand` crate. The `rand` crate
 /// is re-exported for your convenience.
 pub use rand;
-//END: rand
+
+mod bevy_framework;
+pub use bevy_framework::*;
