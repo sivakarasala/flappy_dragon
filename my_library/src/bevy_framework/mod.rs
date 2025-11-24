@@ -3,6 +3,9 @@ use bevy::state::state::FreelyMutableState;
 
 mod game_menus;
 
+mod bevy_animation;
+pub use bevy_animation::*;
+
 pub struct GameStatePlugin<T> {
     menu_state: T,
     game_start_state: T,

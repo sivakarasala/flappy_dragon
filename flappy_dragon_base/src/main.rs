@@ -26,7 +26,7 @@ fn main() -> anyhow::Result<()> {
 
     add_phase!(app, GamePhase, GamePhase::Flapping,
         start => [ setup ],
-        run => [ gravity, flap, clamp, move_walls, hit_wall ],
+        run => [ gravity, flap, clamp, move_walls, hit_wall, cycle_animations ],
         exit => [ cleanup::<FlappyElement> ]
     );
     app.add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -48,7 +48,42 @@ fn main() -> anyhow::Result<()> {
             .add_image("dragon", "flappy_dragon.png")?
             .add_image("wall", "wall.png")?
             .add_sound("flap", "dragonflap.ogg")?
-            .add_sound("crash", "crash.ogg")?,
+            .add_sound("crash", "crash.ogg")?
+            .add_sprite_sheet("flappy", "flappy_sprite_sheet.png", 62.0, 65.0, 4, 1)?,
+    )
+    .insert_resource(
+        Animations::new()
+            .with_animation(
+                "Straignt and Level",
+                PerFrameAnimation::new(vec![
+                    AnimationFrame::new(2, 500, vec![AnimationOption::NextFrame]),
+                    AnimationFrame::new(3, 500, vec![AnimationOption::GoToFrame(0)]),
+                ]),
+            )
+            .with_animation(
+                "Flapping",
+                PerFrameAnimation::new(vec![
+                    AnimationFrame::new(
+                        0,
+                        66,
+                        vec![
+                            AnimationOption::NextFrame,
+                            AnimationOption::PlaySound("flap".to_string()),
+                        ],
+                    ),
+                    AnimationFrame::new(1, 66, vec![AnimationOption::NextFrame]),
+                    AnimationFrame::new(2, 66, vec![AnimationOption::NextFrame]),
+                    AnimationFrame::new(3, 66, vec![AnimationOption::NextFrame]),
+                    AnimationFrame::new(2, 66, vec![AnimationOption::NextFrame]),
+                    AnimationFrame::new(
+                        1,
+                        66,
+                        vec![AnimationOption::SwitchToAnimation(
+                            "Straight and Level".to_string(),
+                        )],
+                    ),
+                ]),
+            ),
     )
     .run();
 
@@ -62,14 +97,14 @@ fn setup(
     loaded_assets: AssetResource,
 ) {
     commands.spawn(Camera2d::default()).insert(FlappyElement);
-    spawn_image!(
+    spawn_animated_sprite!(
         assets,
         commands,
-        "dragon",
+        "flappy",
         -490.0,
         0.0,
-        1.0,
-        &loaded_assets,
+        10.0,
+        "Straight and Level",
         Flappy { gravity: 0.0 },
         FlappyElement
     );
@@ -106,17 +141,11 @@ fn gravity(mut query: Query<(&mut Flappy, &mut Transform)>) {
     }
 }
 
-fn flap(
-    keyboard: Res<ButtonInput<KeyCode>>,
-    mut query: Query<&mut Flappy>,
-    assets: Res<AssetStore>,
-    loaded: Res<LoadedAssets>,
-    mut commands: Commands,
-) {
+fn flap(keyboard: Res<ButtonInput<KeyCode>>, mut query: Query<(&mut Flappy, &mut AnimationCycle)>) {
     if keyboard.pressed(KeyCode::Space) {
-        if let Ok(mut flappy) = query.single_mut() {
+        if let Ok((mut flappy, mut animation)) = query.single_mut() {
             flappy.gravity = -5.0;
-            assets.play("flap", &mut commands, &loaded);
+            animation.switch("Flapping");
         }
     }
 }
