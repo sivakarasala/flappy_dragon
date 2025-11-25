@@ -6,6 +6,9 @@ mod game_menus;
 mod bevy_animation;
 pub use bevy_animation::*;
 
+mod bevy_physics;
+pub use bevy_physics::*;
+
 pub struct GameStatePlugin<T> {
     menu_state: T,
     game_start_state: T,
@@ -65,6 +68,9 @@ where
             crate::bevy_assets::run::<T>.run_if(in_state(T::default())),
         );
         app.add_systems(OnExit(T::default()), crate::bevy_assets::exit);
+
+        app.add_event::<PhysicsTick>();
+        app.add_event::<Impulse>();
     }
 }
 

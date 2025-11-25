@@ -11,9 +11,7 @@ enum GamePhase {
 }
 
 #[derive(Component)]
-struct Flappy {
-    gravity: f32,
-}
+struct Flappy;
 
 #[derive(Component)]
 struct Obstacle;
@@ -26,7 +24,7 @@ fn main() -> anyhow::Result<()> {
 
     add_phase!(app, GamePhase, GamePhase::Flapping,
         start => [ setup ],
-        run => [ gravity, flap, clamp, move_walls, hit_wall, cycle_animations, continual_parallax ],
+        run => [ flap, clamp, move_walls, hit_wall, cycle_animations, continual_parallax, physics_clock, sum_impulses, apply_gravity, apply_velocity ],
         exit => [ cleanup::<FlappyElement> ]
     );
     app.add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -109,8 +107,10 @@ fn setup(
         0.0,
         10.0,
         "Straight and Level",
-        Flappy { gravity: 0.0 },
-        FlappyElement
+        Flappy,
+        FlappyElement,
+        Velocity::default(),
+        ApplyGravity
     );
     build_wall(&mut commands, &assets, rng.range(-5..5), &loaded_assets);
 
@@ -209,23 +209,26 @@ fn build_wall(
                 10.0,
                 &loaded_assets,
                 Obstacle,
-                FlappyElement
+                FlappyElement,
+                Velocity::new(-4.0, 0.0, 0.0)
             );
         }
     }
 }
 
-fn gravity(mut query: Query<(&mut Flappy, &mut Transform)>) {
-    if let Ok((mut flappy, mut transform)) = query.single_mut() {
-        flappy.gravity += 0.1;
-        transform.translation.y -= flappy.gravity;
-    }
-}
-
-fn flap(keyboard: Res<ButtonInput<KeyCode>>, mut query: Query<(&mut Flappy, &mut AnimationCycle)>) {
+fn flap(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut query: Query<(Entity, &mut AnimationCycle)>,
+    mut impulse: EventWriter<Impulse>,
+) {
     if keyboard.pressed(KeyCode::Space) {
-        if let Ok((mut flappy, mut animation)) = query.single_mut() {
-            flappy.gravity = -5.0;
+        if let Ok((flappy, mut animation)) = query.single_mut() {
+            impulse.write(Impulse {
+                target: flappy,
+                amount: Vec3::Y,
+                absolute: false,
+                source: 1,
+            });
             animation.switch("Flapping");
         }
     }
@@ -243,15 +246,14 @@ fn clamp(mut query: Query<&mut Transform, With<Flappy>>, mut state: ResMut<NextS
 
 fn move_walls(
     mut commands: Commands,
-    mut query: Query<&mut Transform, With<Obstacle>>,
+    query: Query<&Transform, With<Obstacle>>,
     delete: Query<Entity, With<Obstacle>>,
     assets: Res<AssetStore>,
     mut rng: ResMut<RandomNumberGenerator>,
     loaded_assets: AssetResource,
 ) {
     let mut rebuild = false;
-    for mut transform in query.iter_mut() {
-        transform.translation.x -= 4.0;
+    for transform in query.iter() {
         if transform.translation.x < -530.0 {
             rebuild = true;
         }
