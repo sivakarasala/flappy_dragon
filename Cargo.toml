@@ -14,4 +14,4 @@ rand_xorshift = { version = "0.3" }
 anyhow = "1"
 
 [workspace]
-members = ["flappy_dragon_base", "my_library", "pig"]
+members = ["bouncy", "bouncy_bbox", "bouncy_bbox_quadtree","flappy_dragon_base", "my_library", "pig"]
