@@ -24,7 +24,8 @@ fn main() -> anyhow::Result<()> {
 
     add_phase!(app, GamePhase, GamePhase::Flapping,
         start => [ setup ],
-        run => [ flap, clamp, move_walls, hit_wall, cycle_animations, continual_parallax, physics_clock, sum_impulses, apply_gravity, apply_velocity, check_collisions::<Flappy, Obstacle> ],
+        run => [ flap, clamp, move_walls, hit_wall, cycle_animations, continual_parallax, physics_clock,
+            sum_impulses, apply_gravity, apply_velocity, check_collisions::<Flappy, Obstacle>, rotate ],
         exit => [ cleanup::<FlappyElement> ]
     );
     app.add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -112,7 +113,8 @@ fn setup(
         FlappyElement,
         Velocity::default(),
         ApplyGravity,
-        AxisAlignedBoundingBox::new(62.0, 65.0)
+        AxisAlignedBoundingBox::new(62.0, 65.0),
+        PhysicsPosition::new(Vec2::new(-490.0, 0.0))
     );
     commands.insert_resource(StaticQuadTree::new(Vec2::new(1024.0, 768.0), 4));
     build_wall(&mut commands, &assets, rng.range(-5..5), &loaded_assets);
@@ -214,7 +216,8 @@ fn build_wall(
                 Obstacle,
                 FlappyElement,
                 Velocity::new(-4.0, 0.0, 0.0),
-                AxisAlignedBoundingBox::new(32.0, 32.0)
+                AxisAlignedBoundingBox::new(32.0, 32.0),
+                PhysicsPosition::new(Vec2::new(512.0, y as f32 * 32.0))
             );
         }
     }
@@ -281,4 +284,17 @@ fn hit_wall(
         assets.play("crash", &mut commands, &loaded_assets);
         let _ = state.set(GamePhase::GameOver);
     }
+}
+
+fn rotate(mut physics_position: Query<(&PhysicsPosition, &mut Transform), With<Flappy>>) {
+    physics_position
+        .iter_mut()
+        .for_each(|(position, mut transform)| {
+            if position.start_frame != position.end_frame {
+                let start = position.start_frame;
+                let end = position.end_frame;
+                let angle = end.angle_to(start) * 10.0;
+                transform.rotation = Quat::from_rotation_z(angle);
+            }
+        })
 }
